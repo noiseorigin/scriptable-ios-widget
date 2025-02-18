@@ -3,16 +3,20 @@
 // 必须保存为「CatWidget」
 
 const API_URL = 'https://api.thecatapi.com/v1/images/search';
-const CACHE_FILE = 'cat_cache_' + Date.now() + '.jpg'; // 动态缓存文件名
+const CACHE_DIR = 'CatWidgetCache';
 const FALLBACK_IMAGE = 'https://cdn2.thecatapi.com/images/ol.jpg';
 
 const fm = FileManager.local();
-const cachePath = fm.joinPath(fm.documentsDirectory(), CACHE_FILE);
+const CACHE_FILE = fm.joinPath(CACHE_DIR, "image.png");
+
+if (fm.fileExists(CACHE_FILE)) {
+    fm.remove(CACHE_FILE);
+}
 
 let widget = new ListWidget();
 
-// 智能刷新控制（核心修复）
-const forceRefresh = args.queryParameter === 'refresh' || !fm.fileExists(cachePath);
+// 刷新控制
+const forceRefresh = args.queryParameter === 'refresh';
 
 try {
   if (forceRefresh) {
@@ -28,13 +32,13 @@ try {
 
     // 下载最新图片
     const newImage = await fetchImage();
-    fm.writeImage(cachePath, newImage);
+    fm.writeImage(CACHE_FILE, newImage);
     console.log("✅ 新图片已缓存");
   }
 
   // 显示图片（优先新缓存）
-  const img = fm.fileExists(cachePath) 
-    ? Image.fromFile(cachePath)
+  const img = fm.fileExists(CACHE_FILE) 
+    ? Image.fromFile(CACHE_FILE)
     : await fetchImage();
   
   // 全屏显示关键修改
